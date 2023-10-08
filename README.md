@@ -66,13 +66,8 @@ pipeline.fit(X_train, y_train)
 ### Accessing the Best Model
 After fitting your pipeline or TextClusterTransformer, you can access the best model by navigating to the named_steps attribute of your pipeline and then accessing the best_kmeans attribute.
 
-from sklearn.pipeline import Pipeline
-from sklearn.ensemble import RandomForestClassifier
-
-pipeline = Pipeline([
-    ('text_cluster', TextClusterTransformer(text_column='your_text_column')),
-    ('classifier', RandomForestClassifier())
-])
+best_kmeans_model = pipeline.named_steps['text_cluster'].best_kmeans
+print("Best K-means model:", best_kmeans_model)
 
 pipeline.fit(X_train, y_train)
 
