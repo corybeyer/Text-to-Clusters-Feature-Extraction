@@ -11,6 +11,8 @@ GridSearchCV: Finds the best K-means model based on a predefined set of hyperpar
 ## Installation
 This is a custom transformer and doesn't require separate installation. You can include it directly in your Python code.
 
+text_cluster_transformer = TextClusterTransformer(text_column='your_text_column')
+
 ## Usage
 Here's how to use TextClusterTransformer:
 
@@ -20,11 +22,17 @@ To initialize the transformer, import TextClusterTransformer from your module an
 ### Fitting the Model
 To fit the transformer to your data, call the fit method on your TextClusterTransformer instance and pass in your training data.
 
+text_cluster_transformer.fit(X_train)
+
 ### Transforming the Data
 To transform the data, call the transform method on your TextClusterTransformer instance and pass in the data you want to transform.
 
+X_transformed = text_cluster_transformer.transform(X_train)
+
 ### Fitting and Transforming
 You can also fit and transform in one step by calling the fit_transform method on your TextClusterTransformer instance and passing in your training data.
+
+X_transformed = text_cluster_transformer.fit_transform(X_train)
 
 ## Methods
 __init__(self, text_column)
