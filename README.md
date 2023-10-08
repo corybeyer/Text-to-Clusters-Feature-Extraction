@@ -54,3 +54,19 @@ text_cluster_transformer, best_model = text_cluster_transformer.fit(X_train, ret
 X_transformed, best_model = text_cluster_transformer.transform(X_train, return_best_model=True)
 
 In this example, the TextClusterTransformer is initialized with 'Narr1' as the text column to be processed. The fit method is then called to fit the transformer to the training data, and the transform method is used to transform the data. Both methods are called with return_best_model=True, so they return the best K-means model along with the transformed data or self.
+
+# Example usage
+# Initialize the transformer with the column name containing text data
+text_cluster_transformer = TextClusterTransformer(text_column='Narr1')
+
+# Fit the transformer and optionally get the best K-means model
+text_cluster_transformer, best_model = text_cluster_transformer.fit(X_train, return_best_model=True)
+
+# Transform the data and optionally get the best K-means model
+X_transformed, best_model = text_cluster_transformer.transform(X_train, return_best_model=True)
+
+# Pipeline ues case
+pipe = Pipeline(
+    steps=[
+  ('text1', TextClusterTransformer(text_column='Narrative Column in df'))
+    ])
