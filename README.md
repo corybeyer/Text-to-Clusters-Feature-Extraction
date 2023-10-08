@@ -50,7 +50,48 @@ best_kmeans: Stores the best K-means model found during fitting.
 ## Example
 To use the TextClusterTransformer, initialize it by specifying the text column, fit it to your training data, and then transform your data.
 
-Contributing
+### Using in a Pipeline
+To use TextClusterTransformer in a pipeline, you can add it as one of the steps in your pipeline definition. This allows you to chain multiple preprocessing steps and even end with an estimator.
+
+from sklearn.pipeline import Pipeline
+from sklearn.ensemble import RandomForestClassifier
+
+pipeline = Pipeline([
+    ('text_cluster', TextClusterTransformer(text_column='your_text_column')),
+    ('classifier', RandomForestClassifier())
+])
+
+pipeline.fit(X_train, y_train)
+
+### Accessing the Best Model
+After fitting your pipeline or TextClusterTransformer, you can access the best model by navigating to the named_steps attribute of your pipeline and then accessing the best_kmeans attribute.
+
+from sklearn.pipeline import Pipeline
+from sklearn.ensemble import RandomForestClassifier
+
+pipeline = Pipeline([
+    ('text_cluster', TextClusterTransformer(text_column='your_text_column')),
+    ('classifier', RandomForestClassifier())
+])
+
+pipeline.fit(X_train, y_train)
+
+### Using with GridSearchCV
+You can also use TextClusterTransformer as a step in a pipeline that you pass to GridSearchCV. This allows you to perform hyperparameter tuning not just for your estimator but also for the text clustering.
+
+from sklearn.model_selection import GridSearchCV
+
+param_grid = {
+    'text_cluster__n_clusters': [2, 3, 4],
+    'classifier__n_estimators': [50, 100, 200]
+}
+
+grid_search = GridSearchCV(pipeline, param_grid, cv=5)
+grid_search.fit(X_train, y_train)
+
+best_pipeline = grid_search.best_estimator_
+
+## Contributing
 This is a custom transformer, and contributions are welcome. Feel free to fork, modify, and submit pull requests.
 
 
