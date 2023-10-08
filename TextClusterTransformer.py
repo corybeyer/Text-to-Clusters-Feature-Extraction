@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 
 # Custom transformer for text preprocessing and clustering
-class TextClusterTransformer(BaseEstimator, TransformerMixin):
+class Text_to_ClusterTransformer(BaseEstimator, TransformerMixin):
     def __init__(self, text_column, n_clusters=[3], n_components=[3]):
         self.text_column = text_column
         self.n_clusters = n_clusters
