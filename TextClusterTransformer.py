@@ -54,6 +54,7 @@ class TextClusterTransformer(BaseEstimator, TransformerMixin):
         
         # Step 4: Add cluster labels to the original data
         X_out = X.copy()
+        X_out = X_out.drop(self.text_column, axis = 1)
         X_out[self.text_column + '_cluster'] = cluster_labels
         
         # Optionally return the best model
