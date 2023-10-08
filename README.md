@@ -13,7 +13,6 @@ Usage
 Here's how to use TextClusterTransformer:
 
 Initialization
-import TextClusterTransformer  # Replace 'your_module' with the actual module name
 # Initialize the transformer
 text_cluster_transformer = TextClusterTransformer(text_column='your_text_column')
 
