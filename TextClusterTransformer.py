@@ -3,61 +3,69 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.decomposition import TruncatedSVD
 from sklearn.cluster import KMeans
 from sklearn.model_selection import GridSearchCV
+from sklearn.pipeline import Pipeline
+import pandas as pd
+import numpy as np
 
 # Custom transformer for text preprocessing and clustering
 class TextClusterTransformer(BaseEstimator, TransformerMixin):
-    def __init__(self, text_column):
-        # Initialize the text column and best K-means model
+    def __init__(self, text_column, n_clusters=[3], n_components=[3]):
         self.text_column = text_column
+        self.n_clusters = n_clusters
+        self.n_components = n_components
         self.best_kmeans = None
+        self.best_n_components = None
 
-    def fit(self, X, y=None, return_best_model=False):
-        # Extract the text data from the given column
+    def fit(self, X, y=None):
         text_data = X[self.text_column]
         
-        # Step 1: Perform TF-IDF vectorization
+        # TF-IDF Vectorization
         tfidf_vectorizer = TfidfVectorizer(stop_words='english', max_df=0.5, min_df=5)
         tfidf_matrix = tfidf_vectorizer.fit_transform(text_data)
         
-        # Step 2: Perform PCA to reduce dimensionality
-        pca = TruncatedSVD(n_components=3)
-        reduced_data = pca.fit_transform(tfidf_matrix)
+        # Create a pipeline for PCA and K-means
+        pca_kmeans_pipeline = Pipeline([
+            ('pca', TruncatedSVD()),
+            ('kmeans', KMeans())
+        ])
         
-        # Step 3: Perform K-means clustering using GridSearchCV to find the best model
-        param_grid = {'n_clusters': [2, 3, 4, 5]}
-        kmeans = KMeans()
-        grid_search = GridSearchCV(kmeans, param_grid, cv=5)
-        grid_search.fit(reduced_data)
+        # Create a parameter grid for both PCA and K-means
+        param_grid = {
+            'pca__n_components': self.n_components,
+            'pca__random_state': [101],
+            'kmeans__n_clusters': self.n_clusters,
+            'kmeans__init': ['k-means++', 'random'],
+            'kmeans__randoms_state': [101]
+        }
         
-        # Store the best K-means model
-        self.best_kmeans = grid_search.best_estimator_
+        # Use GridSearchCV to find the best combination of n_components and n_clusters
+        grid_search = GridSearchCV(pca_kmeans_pipeline, param_grid, cv=5)
+        grid_search.fit(tfidf_matrix)
         
-        # Optionally return the best model
-        if return_best_model:
-            return self, self.best_kmeans
+        # Store the best K-means model and n_components
+        self.best_kmeans = grid_search.best_estimator_.named_steps['kmeans']
+        self.best_n_components = grid_search.best_estimator_.named_steps['pca'].n_components
+        
         return self
 
-    def transform(self, X, return_best_model=False):
-        # Extract the text data from the given column
+    def transform(self, X):
         text_data = X[self.text_column]
         
-        # Step 1: Perform TF-IDF vectorization
+        # TF-IDF Vectorization
         tfidf_vectorizer = TfidfVectorizer(stop_words='english', max_df=0.5, min_df=5)
         tfidf_matrix = tfidf_vectorizer.fit_transform(text_data)
         
-        # Step 2: Perform PCA to reduce dimensionality
-        pca = TruncatedSVD(n_components=3)
+        # Apply PCA with the best number of components
+        pca = TruncatedSVD(n_components=self.best_n_components)
         reduced_data = pca.fit_transform(tfidf_matrix)
         
-        # Step 3: Use the best K-means model to get cluster labels
+        # Get cluster labels from the best K-means model
         cluster_labels = self.best_kmeans.predict(reduced_data)
         
-        # Step 4: Add cluster labels to the original data
-        X_out = X.copy()
-        X_out = X_out.drop(self.text_column, axis = 1)
-        X_out[self.text_column + '_cluster'] = cluster_labels
+        # Drop the original text column from the DataFrame
+        X_transformed = X.drop(columns=[self.text_column])
         
-        # Optionally return the best model
-        if return_best_model:
-            return X_out, self.best_kmeans
-        return X_out
+        # Add the cluster labels to the DataFrame
+        X_transformed[self.text_column + '_cluster'] = cluster_labels
+        
+        return X_transformed
