@@ -9,18 +9,20 @@ import numpy as np
 
 # Custom transformer for text preprocessing and clustering
 class Text_to_ClusterTransformer(BaseEstimator, TransformerMixin):
-    def __init__(self, text_column, n_clusters=[3], n_components=[3]):
+    def __init__(self, text_column, n_clusters= 2, n_components= 2):
         self.text_column = text_column
         self.n_clusters = n_clusters
         self.n_components = n_components
         self.best_kmeans = None
         self.best_n_components = None
+        self.input_features = None
 
     def fit(self, X, y=None):
+        self.input_features = list(X.columns)
         text_data = X[self.text_column]
         
         # TF-IDF Vectorization
-        tfidf_vectorizer = TfidfVectorizer(stop_words='english', max_df=0.5, min_df=5)
+        tfidf_vectorizer = TfidfVectorizer(stop_words='english') #, max_df=0, min_df=1
         tfidf_matrix = tfidf_vectorizer.fit_transform(text_data)
         
         # Create a pipeline for PCA and K-means
@@ -31,11 +33,11 @@ class Text_to_ClusterTransformer(BaseEstimator, TransformerMixin):
         
         # Create a parameter grid for both PCA and K-means
         param_grid = {
-            'pca__n_components': self.n_components,
+            'pca__n_components': [self.n_components],
             'pca__random_state': [101],
-            'kmeans__n_clusters': self.n_clusters,
+            'kmeans__n_clusters': [self.n_clusters],
             'kmeans__init': ['k-means++', 'random'],
-            'kmeans__randoms_state': [101]
+            'kmeans__random_state': [101]
         }
         
         # Use GridSearchCV to find the best combination of n_components and n_clusters
@@ -68,4 +70,9 @@ class Text_to_ClusterTransformer(BaseEstimator, TransformerMixin):
         # Add the cluster labels to the DataFrame
         X_transformed[self.text_column + '_cluster'] = cluster_labels
         
+        self.output_features = X_transformed.columns.tolist()
+        
         return X_transformed
+    
+    def get_feature_names_out(self, input_features = None):
+        return np.array(self.output_features)
